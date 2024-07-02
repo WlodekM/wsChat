@@ -1,44 +1,44 @@
 import { WebSocketServer } from "ws";
-import cuid from 'cuid';
 import { getRandomInt } from "./lib.js"
 import { commands } from "./commands.js";
+import cuid from 'cuid';
 import fs from 'fs';
 
-const config = JSON.parse(String(fs.readFileSync("config.json")))
-
-const channels = ["home", "off-topic"]
+const server = {
+    config: JSON.parse(String(fs.readFileSync("config.json"))),
+    channels: ["home", "off-topic"],
+    users: {},
+}
 
 const ws = new WebSocketServer({
     port: 9933,
 });
 
-const users = {}
-
 function sendInChannel(msg, channel) {
-    for (const userID in users) {
-        const user = users[userID];
+    for (const userID in server.users) {
+        const user = server.users[userID];
         if (user.channel == channel) user.socket.send(msg)
     }
 }
 
 function format(txt) {
     txt = String(txt)
-    txt = txt.replaceAll("$(serverName)$", config.name)
-    txt = txt.replaceAll("$(userCount)$", Object.keys(users).length)
-    txt = txt.replaceAll("$(max)$", config.max)
+    txt = txt.replaceAll("$(serverName)$", server.config.name)
+    txt = txt.replaceAll("$(userCount)$", Object.keys(server.users).length)
+    txt = txt.replaceAll("$(max)$", server.config.max)
     return txt
 }
 
 ws.on('connection', (socket, request) => {
-    if (config.max && Object.keys(users).length >= config.max) {
-        socket.send(format(config.fullMessage ?? "Sorry, but the server is full right now, come back later"))
+    if (server.config.max && Object.keys(server.users).length >= server.config.max) {
+        socket.send(format(server.config.fullMessage ?? "Sorry, but the server is full right now, come back later"))
         socket.close(1001, "Server full")
     }
     let userID = cuid()
-    socket.send(format(config.motd))
+    socket.send(format(server.config.motd))
     let anonID = getRandomInt(0, 99999)
-    users[userID] = {
-        username: `Anonymous${"0".repeat(5 - anonID.length) + anonID.toString()}`,
+    server.users[userID] = {
+        username: `Anonymous${"0".repeat(5 - anonID.toString().length) + anonID.toString()}`,
         socket: socket,
         joinReq: request,
         t: {
@@ -48,30 +48,38 @@ ws.on('connection', (socket, request) => {
         },
         channel: 'home'
     }
-    sendInChannel(`${users[userID].username} joined #${users[userID].channel}!`, users[userID].channel)
+    sendInChannel(`${server.users[userID].username} joined #${server.users[userID].channel}!`, server.users[userID].channel)
     socket.on('close', function (code, reason) {
-        sendInChannel(`${users[userID].username} left.`, users[userID].channel)
-        delete users[userID]
+        sendInChannel(`${server.users[userID].username} left.`, server.users[userID].channel)
+        delete server.users[userID]
     })
     socket.on('message', function (rawData) {
         if (rawData.toString().startsWith("/")) {
             let args = String(rawData).replace("/", "").split(" ");
             let command = args.shift();
             let commandObj = Object.values(commands).find(cmd => cmd.name == command || cmd.aliases.includes(command))
-            console.log(`${users[userID].username} used /${command}`)
+            console.log(`${server.users[userID].username} used /${command}`)
             if (!commandObj) return socket.send(`Error: Command "${command}" not found!`);
-            let user = users[userID]
+            let user = server.users[userID]
             try {
-                commandObj.command({ user, command, args, sendInChannel, channels, users, commands })
+                commandObj.command({ user, command, args, sendInChannel, server, commands })
             } catch (error) {
                 user.socket.send(`Unexpected error ocurred while running the command`)
             }
             return
         }
+        if (rawData.toString().startsWith(":client")) {
+            let client = String(rawData).replace(":client", "");
+            if (!client) return socket.send("Error: client info missing!");
+            if (client.length < 2) return socket.send("Error: client info too short!");
+            if (client.length >= 100) return socket.send("Error: client info too long!");
+            server.users[userID].client = client;
+            return
+        }
         if (rawData.length < 1) return socket.send("Error: message too short!")
         if (rawData.length >= 2000) return socket.send("Error: message too long!")
-        sendInChannel(`<${users[userID].username}> ${rawData}`, users[userID].channel)
-        console.log(`(#${users[userID].channel}) <${users[userID].username}> ${rawData}`)
+        sendInChannel(`<${server.users[userID].username}> ${rawData}`, server.users[userID].channel)
+        console.log(`(#${server.users[userID].channel}) <${server.users[userID].username}> ${rawData}`)
     })
 })
 
