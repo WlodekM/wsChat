@@ -1,6 +1,7 @@
 {
   "name": "wschat",
   "description": "A simple IRC-like chat made using nodejs and webSockets",
+  "version": "1.1.0",
   "author": {
     "name": "WlodekM",
     "email": "wlodekm.work@gmail.com",

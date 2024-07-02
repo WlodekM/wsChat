@@ -1,6 +1,10 @@
 import { WebSocketServer } from "ws";
 import cuid from 'cuid';
 import { getRandomInt } from "./lib.js"
+import { commands } from "./commands.js";
+import fs from 'fs';
+
+const config = JSON.parse(String(fs.readFileSync("config.json")))
 
 const channels = ["home", "off-topic"]
 
@@ -13,14 +17,25 @@ const users = {}
 function sendInChannel(msg, channel) {
     for (const userID in users) {
         const user = users[userID];
-        if(user.channel == channel) user.socket.send(msg)
+        if (user.channel == channel) user.socket.send(msg)
     }
 }
 
+function format(txt) {
+    txt = String(txt)
+    txt = txt.replaceAll("$(serverName)$", config.name)
+    txt = txt.replaceAll("$(userCount)$", Object.keys(users).length)
+    txt = txt.replaceAll("$(max)$", config.max)
+    return txt
+}
+
 ws.on('connection', (socket, request) => {
-    // console.log(request, socket);
+    if (config.max && Object.keys(users).length >= config.max) {
+        socket.send(format(config.fullMessage ?? "Sorry, but the server is full right now, come back later"))
+        socket.close(1001, "Server full")
+    }
     let userID = cuid()
-    socket.send("Welcome to WlodekM's wsChat server!")
+    socket.send(format(config.motd))
     let anonID = getRandomInt(0, 99999)
     users[userID] = {
         username: `Anonymous${"0".repeat(5 - anonID.length) + anonID.toString()}`,
@@ -34,49 +49,27 @@ ws.on('connection', (socket, request) => {
         channel: 'home'
     }
     sendInChannel(`${users[userID].username} joined #${users[userID].channel}!`, users[userID].channel)
-    socket.on('close', function(code, reason) {
+    socket.on('close', function (code, reason) {
         sendInChannel(`${users[userID].username} left.`, users[userID].channel)
         delete users[userID]
     })
     socket.on('message', function (rawData) {
-        if(rawData.toString().startsWith("/")) {
+        if (rawData.toString().startsWith("/")) {
             let args = String(rawData).replace("/", "").split(" ");
             let command = args.shift();
+            let commandObj = Object.values(commands).find(cmd => cmd.name == command || cmd.aliases.includes(command))
             console.log(`${users[userID].username} used /${command}`)
-            switch (command) {
-                case 'join':
-                    if(args.length < 1) return socket.send("Error: You need to specify a channel (example: /join #home).");
-                    if(!args[0].startsWith("#")) return socket.send("Error: Channel not found, run /channels to see a list of channels.");
-                    if(!channels.includes(args[0].replace("#", ""))) return socket.send("Error: Channel not found, run /channels to see a list of channels.");
-                    sendInChannel(`${users[userID].username} left #${users[userID].channel}.`, users[userID].channel)
-                    users[userID].channel = args[0].replace("#", "");
-                    sendInChannel(`${users[userID].username} joined #${users[userID].channel}!`, users[userID].channel)
-                    break;
-                case 'channels':
-                    socket.send(`Channels:\n${channels.map(ch => ` * #${ch}`).join("\n")}`)
-                    break;
-                case 'name':
-                case 'nickname':
-                case 'nick':
-                    if(args.length < 1) return socket.send("Error: You need to specify a nick (example: /nick WlodekM).");
-                    if(args[0].length < 3 ) return socket.send("Error: Nick too long.");
-                    if(args[0].length > 20) return socket.send("Error: Nick too short.");
-                    if(Object.values(users).find(usr => usr.username == args[0])) return socket.send("Error: Nick already used.");
-                    sendInChannel(`${users[userID].username} changed their nick to ${args[0]}!`, users[userID].channel)
-                    users[userID].username = args[0]
-                    break;
-                case 'users':
-                    socket.send(`Users${args[0] != "global" ? ` in ${users[userID].channel}` : ""}:\n${Object.values(users).filter(usr => (usr.channel == users[userID].channel) || args[0] == "global").map(ch => ` * ${ch}`).join("\n")}`)
-                    break;
-            
-                default:
-                    socket.send(`Error: Command "${command}" not found!`);
-                    break;
+            if (!commandObj) return socket.send(`Error: Command "${command}" not found!`);
+            let user = users[userID]
+            try {
+                commandObj.command({ user, command, args, sendInChannel, channels, users, commands })
+            } catch (error) {
+                user.socket.send(`Unexpected error ocurred while running the command`)
             }
             return
         }
-        if(rawData.length < 1) return socket.send("Error: message too short!")
-        if(rawData.length >= 2000) return socket.send("Error: message too long!")
+        if (rawData.length < 1) return socket.send("Error: message too short!")
+        if (rawData.length >= 2000) return socket.send("Error: message too long!")
         sendInChannel(`<${users[userID].username}> ${rawData}`, users[userID].channel)
         console.log(`(#${users[userID].channel}) <${users[userID].username}> ${rawData}`)
     })
