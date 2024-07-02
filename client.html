@@ -1,4 +1,5 @@
 <div class="container">
+    <div class="title">wsChat</div>
     <div class="logs">
     </div>
     <div class="msg">
@@ -11,10 +12,12 @@
 <script>
     const logs = document.querySelector(".logs");
     const msgForm = document.querySelector("#msg");
-    const ws = new WebSocket("ws://127.0.0.1:9933"); // CHANGE ME
+    const server = prompt("Enter server URL", "ws://127.0.0.1:9933")
+    const ws = new WebSocket(server); // CHANGE ME
     ws.onopen = openEv => {
         if(logs.innerText.length != 0) logs.innerText += "\n";
         logs.innerText += `Connected to wsChat server at ${ws.url}`;
+        document.querySelector(".title").innerHTML += ` - ${new URL(ws.url).host}`;
     }
     ws.onmessage = msg => {;
         console.log(msg);
@@ -53,6 +56,13 @@
     .logs {
         flex-grow: 1;
         padding: 1em;
+    }
+    .title {
+        border-bottom: 2px red solid;
+        padding: 1em;
+        font-size:  larger;
+        font-weight:  bold;
+        text-align: center;
     }
     #msg {
         border-top: 2px red solid;
