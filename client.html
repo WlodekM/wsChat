@@ -1,0 +1,68 @@
+<div class="container">
+    <div class="logs">
+    </div>
+    <div class="msg">
+        <form id="msg">
+            <input type="text" id="msg-content" autocomplete="off">
+            <input type="submit">
+        </form>
+    </div>
+</div>
+<script>
+    const logs = document.querySelector(".logs");
+    const msgForm = document.querySelector("#msg");
+    const ws = new WebSocket("ws://127.0.0.1:9933"); // CHANGE ME
+    ws.onopen = openEv => {
+        if(logs.innerText.length != 0) logs.innerText += "\n";
+        logs.innerText += `Connected to wsChat server at ${ws.url}`;
+    }
+    ws.onmessage = msg => {;
+        console.log(msg);
+        if(logs.innerText.length != 0) logs.innerText += "\n";
+        logs.innerText += msg.data;
+    };
+    ws.onclose = cls => {
+        if(logs.innerText.length != 0) logs.innerText += "\n";
+        logs.innerText += `Connection closed with code ${cls.code}, reason: ${cls.reason}`;
+    }
+    msgForm.addEventListener('submit', ev => {
+        ev.preventDefault();
+        const message = document.querySelector("#msg-content");
+        ws.send(message.value);
+        message.value = "";
+    });
+</script>
+<style>
+    * {
+        box-sizing: border-box;
+    }
+    body {
+        margin: 0;
+        width: 100%;
+        min-height: 100vh;
+        position: absolute;
+    }
+    .container {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        height: calc(100vh - 3em);
+        border: 2px red solid;
+        margin: 1.5em;
+    }
+    .logs {
+        flex-grow: 1;
+        padding: 1em;
+    }
+    #msg {
+        border-top: 2px red solid;
+        padding: 1em;
+        display: flex;
+        margin: 0;
+        height: 2em;
+        box-sizing: content-box;
+    }
+    #msg-content {
+        flex-grow: 1;
+    }
+</style>

@@ -1,0 +1,21 @@
+{
+  "name": "wschat",
+  "description": "A simple IRC-like chat made using nodejs and webSockets",
+  "author": {
+    "name": "WlodekM",
+    "email": "wlodekm.work@gmail.com",
+    "url": "https://wlodekm.nekoweb.org"
+  },
+  "module": "index.js",
+  "type": "module",
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "cuid": "^3.0.0",
+    "ws": "^8.17.1"
+  }
+}
