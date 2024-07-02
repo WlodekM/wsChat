@@ -18,9 +18,9 @@ node index.js
 
 ## TODO
 
-- Make commands be in an object instead of a switch statement
-- /help command
+- ~~Make commands be in an object instead of a switch statement~~
+- ~~/help command~~
 - /about command
-- Config (JSON)
-- MOTD
-- Custom commands
+- ~~Config (JSON)~~
+- ~~MOTD~~
+- Custom commands (plugins)
