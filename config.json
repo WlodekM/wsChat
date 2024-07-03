@@ -2,5 +2,6 @@
     "name": "wsChat server",
     "motd": "Welcome to $(serverName)$\nRun /help to see a list of commands",
     "max": 20,
+    "profanity": false,
     "fullMessage": "Sorry, but the server is full right now, come back later"
 }

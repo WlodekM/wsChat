@@ -1,9 +1,11 @@
 import { WebSocketServer } from "ws";
 import { getRandomInt } from "./lib.js"
+import { profanity } from '@2toad/profanity';
 import { commands } from "./commands.js";
 import * as accounts from "./accounts.js"
 import cuid from 'cuid';
 import fs from 'fs';
+profanity.options.grawlixChar = "*"
 
 const server = {
     config: JSON.parse(String(fs.readFileSync("config.json"))),
@@ -123,8 +125,9 @@ ws.on('connection', (socket, request) => {
             }
             return
         }
-        if (rawData.length < 1) return socket.send("Error: message too short!")
-        if (rawData.length >= 2000) return socket.send("Error: message too long!")
+        if (rawData.length < 1) return socket.send("Error: message too short!");
+        if (rawData.length >= 2000) return socket.send("Error: message too long!");
+        if (!server.profanity) rawData = profanity.censor(String(rawData));
         sendInChannel(`<${user.name()}${user.guest ? " (guest)" : ""}> ${rawData}`, server.users[userID].channel)
         console.log(`(#${server.users[userID].channel}) <${user.name()}> ${rawData}`)
     })
