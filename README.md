@@ -24,7 +24,7 @@ node index.js
 - ~~Config (JSON)~~
 - ~~MOTD~~
 - ~~Custom commands (plugins)~~
-- Auth (optional)
+- ~~Auth (optional)~~
 
 ## IN PROGRESS
 

@@ -1,6 +1,7 @@
 import { WebSocketServer } from "ws";
 import { getRandomInt } from "./lib.js"
 import { commands } from "./commands.js";
+import * as accounts from "./accounts.js"
 import cuid from 'cuid';
 import fs from 'fs';
 
@@ -8,6 +9,7 @@ const server = {
     config: JSON.parse(String(fs.readFileSync("config.json"))),
     channels: ["home", "off-topic"],
     users: {},
+    accounts: accounts,
 }
 
 const ws = new WebSocketServer({
@@ -37,10 +39,13 @@ ws.on('connection', (socket, request) => {
         socket.close(1001, "Server full")
     }
     let userID = cuid()
+    console.info(`${userID} joined the server.`)
     socket.send(format(server.config.motd))
     let anonID = getRandomInt(0, 99999)
     server.users[userID] = {
         username: `Anonymous${"0".repeat(5 - anonID.toString().length) + anonID.toString()}`,
+        nickname: `Anonymous${"0".repeat(5 - anonID.toString().length) + anonID.toString()}`,
+        guest: true,
         socket: socket,
         joinReq: request,
         t: {
@@ -48,12 +53,14 @@ ws.on('connection', (socket, request) => {
             unix: Math.floor(new Date().getTime() / 1000),
             str: String(new Date())
         },
-        channel: 'home'
+        channel: 'home',
+        name: function(){return this.nickname != "" ? this.nickname : this.username}
     }
-    console.info(`${server.users[userID].username} joined the server!`)
-    sendInChannel(`${server.users[userID].username} joined #${server.users[userID].channel}!`, server.users[userID].channel)
+    const user = server.users[userID]
+    console.info(`${user.name()} joined the server!`)
+    sendInChannel(`${user.name()} joined #${server.users[userID].channel}!`, server.users[userID].channel)
     socket.on('close', function (code, reason) {
-        sendInChannel(`${server.users[userID].username} left.`, server.users[userID].channel)
+        sendInChannel(`${user.name()} left.`, server.users[userID].channel)
         delete server.users[userID]
     })
     socket.on('message', function (rawData) {
@@ -61,12 +68,12 @@ ws.on('connection', (socket, request) => {
             let args = String(rawData).replace("/", "").split(" ");
             let command = args.shift();
             let commandObj = Object.values(commands).find(cmd => cmd.name == command || cmd.aliases.includes(command))
-            console.log(`${server.users[userID].username} used /${command}`)
+            console.log(`${user.name()} used /${command}`)
             if (!commandObj) return socket.send(`Error: Command "${command}" not found!`);
-            let user = server.users[userID]
             try {
                 commandObj.command({ user, command, args, sendInChannel, server, commands })
             } catch (error) {
+                console.error(error)
                 user.socket.send(`Unexpected error ocurred while running the command`)
             }
             return
@@ -80,24 +87,46 @@ ws.on('connection', (socket, request) => {
             return
         }
         if (rawData.toString().startsWith(":jsonGet")) {
-            let params = String(rawData).replace(":jsonGet", "").split(" ");
+            let params = String(rawData).split(" ");
+            params.shift()
             switch (params[0]) {
                 case 'channels':
                     socket.send(JSON.stringify(server.channels));
                     break;
                 case 'users':
-                    socket.send(JSON.stringify(server.users));
+                    socket.send(JSON.stringify(Object.values(server.users).map(usr => {return {
+                        username: usr.username,
+                        nickname: usr.nickname,
+                        t: usr.t,
+                        channel: user.channel,
+                        displayName: user.name()
+                    }})));
+                    break;
+                case 'usersLocal':
+                    socket.send(
+                        JSON.stringify(
+                            Object.values(server.users)
+                            .filter(usr => (usr.channel == user.channel))
+                            .map(usr => {return {
+                                username: usr.username,
+                                nickname: usr.nickname,
+                                t: usr.t,
+                                channel: user.channel,
+                                displayName: user.name()
+                            }})
+                        ));
                     break;
             
                 default:
+                    socket.send(`unknown "${params[0]}"`);
                     break;
             }
             return
         }
         if (rawData.length < 1) return socket.send("Error: message too short!")
         if (rawData.length >= 2000) return socket.send("Error: message too long!")
-        sendInChannel(`<${server.users[userID].username}> ${rawData}`, server.users[userID].channel)
-        console.log(`(#${server.users[userID].channel}) <${server.users[userID].username}> ${rawData}`)
+        sendInChannel(`<${user.name()}${user.guest ? " (guest)" : ""}> ${rawData}`, server.users[userID].channel)
+        console.log(`(#${server.users[userID].channel}) <${user.name()}> ${rawData}`)
     })
 })
 
