@@ -29,6 +29,8 @@ function format(txt) {
     return txt
 }
 
+server.format = format
+
 ws.on('connection', (socket, request) => {
     if (server.config.max && Object.keys(server.users).length >= server.config.max) {
         socket.send(format(server.config.fullMessage ?? "Sorry, but the server is full right now, come back later"))
@@ -48,6 +50,7 @@ ws.on('connection', (socket, request) => {
         },
         channel: 'home'
     }
+    console.info(`${server.users[userID].username} joined the server!`)
     sendInChannel(`${server.users[userID].username} joined #${server.users[userID].channel}!`, server.users[userID].channel)
     socket.on('close', function (code, reason) {
         sendInChannel(`${server.users[userID].username} left.`, server.users[userID].channel)
@@ -74,6 +77,21 @@ ws.on('connection', (socket, request) => {
             if (client.length < 2) return socket.send("Error: client info too short!");
             if (client.length >= 100) return socket.send("Error: client info too long!");
             server.users[userID].client = client;
+            return
+        }
+        if (rawData.toString().startsWith(":jsonGet")) {
+            let params = String(rawData).replace(":jsonGet", "").split(" ");
+            switch (params[0]) {
+                case 'channels':
+                    socket.send(JSON.stringify(server.channels));
+                    break;
+                case 'users':
+                    socket.send(JSON.stringify(server.users));
+                    break;
+            
+                default:
+                    break;
+            }
             return
         }
         if (rawData.length < 1) return socket.send("Error: message too short!")

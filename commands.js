@@ -10,6 +10,7 @@ export const commands = {
             if(!server.channels.includes(args[0].replace("#", ""))) return user.socket.send("Error: Channel not found, run /channels to see a list of channels.");
             sendInChannel(`${user.username} left #${user.channel}.`, user.channel)
             user.channel = args[0].replace("#", "");
+            console.info(`${user.username} went to #${user.channel}`)
             sendInChannel(`${user.username} joined #${user.channel}!`, user.channel)
         }
     },
@@ -68,4 +69,11 @@ export const commands = {
 
 export function register(cmd, data) {
     commands[cmd] = data
+}
+
+let commandFiles = fs.readdirSync("commands").filter(filename => filename.endsWith(".js")).map(file => file.replace(/\.js$/gmi, ''))
+for (let i = 0; i < commandFiles.length; i++) {
+    const cmdName = commandFiles[i];
+    const cmd = (await import(`./commands/${cmdName}.js`)).default
+    register(cmdName, cmd)
 }
