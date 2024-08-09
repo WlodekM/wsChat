@@ -18,14 +18,14 @@ node index.js
 
 ## TODO
 
-- ~~Make commands be in an object instead of a switch statement~~
-- ~~/help command~~
-- ~~/about command~~
-- ~~Config (JSON)~~
-- ~~MOTD~~
-- ~~Custom commands (plugins)~~
-- ~~Auth (optional)~~
+-   ~~Make commands be in an object instead of a switch statement~~
+-   ~~/help command~~
+-   ~~/about command~~
+-   ~~Config (JSON)~~
+-   ~~MOTD~~
+-   ~~Custom commands (plugins)~~
+-   ~~Auth (optional)~~
 
 ## IN PROGRESS
 
-- JSON support (for clients and stuff)
+-   JSON support (for clients and stuff)

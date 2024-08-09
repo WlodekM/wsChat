@@ -1,7 +1,12 @@
 {
     "name": "wsChat server",
-    "motd": "Welcome to $(serverName)$\nRun /help to see a list of commands",
+    "motd": "Welcome to $(serverName)$\nRun /help to see a list of commands\nHUGE CLIENT UPDATE\n- Client now supports links!\n- You can now {b}style{/b} your {i}messages{/i} with \\{b} or \\{i} tags!\n- {c#ff1111}Color support{/c} with {c#22aaff}\\{c#HEXCOLOR}{/c} tags",
     "max": 20,
+    "owner": "WlodekM",
+    "saveIP": false,
+    "requireLogin": true,
     "profanity": false,
+    "profanityRemoveWords": ["butt", "arse", "balls", "dick"],
+    "profanityAddWords": ["kys"],
     "fullMessage": "Sorry, but the server is full right now, come back later"
 }
