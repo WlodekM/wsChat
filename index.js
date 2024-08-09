@@ -193,7 +193,7 @@ ws.on("connection", (socket, request) => {
             }
             return;
         }
-        if (server.config.requireLogin) return socket.send("This server requires you to log in, use /login <username> <password> to log in or /register <username> <password> to make an account.");
+        if (server.config.requireLogin && user.guest) return socket.send("This server requires you to log in, use /login <username> <password> to log in or /register <username> <password> to make an account.");
         profanity.options.grawlixChar = "*";
         if (!server.config.profanity) rawData = profanity.censor(String(rawData));
         if (rawData.length < 1) return socket.send("Error: message too short!");
