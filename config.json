@@ -1,6 +1,6 @@
 {
     "name": "wsChat server",
-    "motd": "Welcome to $(serverName)$\nRun /help to see a list of commands\nHUGE CLIENT UPDATE\n- Client now supports links!\n- You can now {b}style{/b} your {i}messages{/i} with \\{b} or \\{i} tags!\n- {c#ff1111}Color support{/c} with {c#22aaff}\\{c#HEXCOLOR}{/c} tags",
+    "motd": "Welcome to $(serverName)$\nRun /help to see a list of commands or run /register to make an account",
     "max": 20,
     "owner": "WlodekM",
     "saveIP": false,
