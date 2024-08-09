@@ -25,7 +25,9 @@ node index.js
 - ~~MOTD~~
 - ~~Custom commands (plugins)~~
 - ~~Auth (optional)~~
+- Command class?
 
 ## IN PROGRESS
 
-- JSON support (for clients and stuff)
+- JSON support (for clients and stuff) (eg getting user data as json)
+- JSON events (for clients and stuff)
