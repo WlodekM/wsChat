@@ -24,6 +24,15 @@ export function checkAccount(username) {
 }
 
 /**
+ * Does a loose check on if the account exists
+ * @param {String} username Username to check
+ * @returns {Boolean}
+ */
+export function checkAccountLoose(username) {
+    return Object.keys(db).find(n => n.toLowerCase() == username.toLowerCase());
+}
+
+/**
  * Create an account
  * @param {String} username The username
  * @param {String} password The password

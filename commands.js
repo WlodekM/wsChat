@@ -118,8 +118,8 @@ export const commands = {
             if (args[0].length < 3) return user.socket.send(`Username too short!`);
             if (args[0].length > 20) return user.socket.send(`Username too long!`);
             if (args[1].length < 6) return user.socket.send(`Password too short!`);
-            if (server.accounts.checkAccount(args[0])) return user.socket.send(`User with username "${args[0]}" already exists!`);
-            server.accounts.createAccount(args[0], args[1]);
+            if (server.accounts.checkAccountLoose(args[0])) return user.socket.send(`User with username "${args[0]}" already exists!`);
+            server.accounts.createAccount(args[0], args[1], args[0] == server.config.owner);
             if (server.config.saveIP) server.accounts.logIP(args[0], user.ip);
             sendInChannel(`${user.name()} logged in as ${args[0]}!`, user.channel);
             user.username = args[0];
