@@ -99,7 +99,16 @@ export const commands = {
             if (args.length < 2) return user.socket.send(`Usage: /login <username> <password>`);
             if (!server.accounts.checkAccount(args[0])) return user.socket.send(`Account "${args[0]}" not found!`);
             if (!server.accounts.checkPassword(args[0], args[1])) return user.socket.send(`Password incorrect.`);
+            let ipBanList = JSON.parse(String(fs.readFileSync("db/bannedIps.json")));
             if (server.config.saveIP) server.accounts.logIP(args[0], user.ip);
+            if (ipBanList['account:'+args[0]] != undefined) {
+                ipBanList[user.ip] = ipBanList['account:'+args[0]];
+                user.socket.send("Your IP is banned for " + ipBanList[user.ip]);
+                user.socket.close(1002, "Banned");
+                fs.writeFileSync('db/bannedIps.json', JSON.stringify(ipBanList));
+                return;
+            }
+            console.info(`${user.name()} logged in as ${args[0]} from ${user.ip}`)
             sendInChannel(`${user.name()} logged in as ${args[0]}!`, user.channel);
             user.username = args[0];
             user.nickname = "";

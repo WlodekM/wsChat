@@ -71,8 +71,8 @@ ws.on("connection", (socket, request) => {
     console.log(request.headers["x-forwarded-for"], request.socket.remoteAddress);
     let anonID = getRandomInt(0, 99999);
     server.users[userID] = {
-        username: `Anonymous${"0".repeat(5 - anonID.toString().length) + anonID.toString()}`,
-        nickname: `Anonymous${"0".repeat(5 - anonID.toString().length) + anonID.toString()}`,
+        username: `Anonymous#${"0".repeat(5 - anonID.toString().length) + anonID.toString()}`,
+        nickname: `Anonymous#${"0".repeat(5 - anonID.toString().length) + anonID.toString()}`,
         guest: true,
         socket: socket,
         joinReq: request,
