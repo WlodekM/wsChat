@@ -8,7 +8,8 @@ import fs from "fs";
 
 const server = {
     config: JSON.parse(String(fs.readFileSync("config.json"))),
-    channels: ["home", "off-topic"],
+    channels: ["home", "off-topic", "randomness"],
+    annonChannels: ["randomness"],
     users: {},
     accounts: accounts,
 };
@@ -70,9 +71,10 @@ ws.on("connection", (socket, request) => {
     let ip = request.headers["x-forwarded-for"] || request.socket.remoteAddress;
     console.log(request.headers["x-forwarded-for"], request.socket.remoteAddress);
     let anonID = getRandomInt(0, 99999);
+    let annonNum = "0".repeat(5 - anonID.toString().length) + anonID.toString()
     server.users[userID] = {
-        username: `Anonymous#${"0".repeat(5 - anonID.toString().length) + anonID.toString()}`,
-        nickname: `Anonymous#${"0".repeat(5 - anonID.toString().length) + anonID.toString()}`,
+        username: server.config.annonFormat ? server.config.annonFormat.replace('[num]', annonNum) : 'Anonymous' + annonNum,
+        nickname: server.config.annonFormat ? server.config.annonFormat.replace('[num]', annonNum) : 'Anonymous' + annonNum,
         guest: true,
         socket: socket,
         joinReq: request,
@@ -193,7 +195,7 @@ ws.on("connection", (socket, request) => {
             }
             return;
         }
-        if (server.config.requireLogin && user.guest) return socket.send("This server requires you to log in, use /login <username> <password> to log in or /register <username> <password> to make an account.");
+        if (server.config.requireLogin && user.guest && !server.annonChannels.includes(user.channel)) return socket.send("This server requires you to log in, use /login <username> <password> to log in or /register <username> <password> to make an account.");
         profanity.options.grawlixChar = "*";
         if (!server.config.profanity) rawData = profanity.censor(String(rawData));
         if (rawData.length < 1) return socket.send("Error: message too short!");

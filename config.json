@@ -8,5 +8,6 @@
     "profanity": false,
     "profanityRemoveWords": ["butt", "arse", "balls", "dick"],
     "profanityAddWords": ["kys"],
-    "fullMessage": "Sorry, but the server is full right now, come back later"
+    "fullMessage": "Sorry, but the server is full right now, come back later",
+    "annonFormat": "Anonymous#[num]"
 }

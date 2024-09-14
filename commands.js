@@ -47,7 +47,8 @@ export const commands = {
         description: "Shows info about wsChat",
         aliases: [],
         command({ user, args, sendInChannel }) {
-            user.socket.send(`wsChat v${JSON.parse(String(fs.readFileSync("package.json"))).version}\nGithub: https://github.com/WlodekM/wsChat`);
+            let packagejson = JSON.parse(fs.readFileSync("package.json").toString())
+            user.socket.send(`wsChat v${packagejson.version}\nGithub: https://github.com/WlodekM/wsChat`);
         },
     },
     whois: {
