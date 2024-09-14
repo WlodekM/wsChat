@@ -1,40 +1,12 @@
 import { WebSocketServer } from "ws";
-import { getRandomInt } from "./lib.js";
 import { profanity } from "@2toad/profanity";
 import { commands } from "./commands.js";
 import * as accounts from "./accounts.js";
-import cuid from "cuid";
 import fs from "fs";
+import User from "./user.js";
+import handleJsonMessage from './jsondata.js'
 
-class User {
-    /**
-     * 
-     * @param {import("http").IncomingMessage} request request
-     * @param {Server} server the server
-     */
-    constructor (request, socket, server) {
-        this.id = cuid();
-        let anonID = getRandomInt(0, 99999);
-        let annonNum = "0".repeat(5 - anonID.toString().length) + anonID.toString()
-        this.username = server.config.annonFormat ? server.config.annonFormat.replace('[num]', annonNum) : 'Anonymous' + annonNum;
-        this.nickname = server.config.annonFormat ? server.config.annonFormat.replace('[num]', annonNum) : 'Anonymous' + annonNum;
-        this.guest = true;
-        this.socket = socket;
-        this.joinReq = request;
-        this.ip = request.headers["x-forwarded-for"] || request.socket.remoteAddress;
-        this.t = {
-            js: Number(new Date()),
-            unix: Math.floor(new Date().getTime() / 1000),
-            str: String(new Date()),
-        };
-        this.channel = "home";
-        this.name = function () {
-            return this.nickname != "" ? this.nickname : this.username;
-        };
-    }
-}
-
-class Server {
+export default class Server {
     sendInChannel(msg, channel) {
         for (const userID in this.users) {
             const user = this.users[userID];
@@ -88,26 +60,27 @@ class Server {
      *  profanityRemoveWords: String[],
      *  profanityAddWords: String[],
      *  fullMessage: String,
-     *  annonFormat: String
-     * }} config 
-     * @param {String[]} channels 
-     * @param {String[]} annonChannels 
+     *  annonFormat: String,
+     *  port: Number,
+     *  channels: String[],
+     *  annonChannels: String[]
+     * }} config
      */
-    constructor (config, channels, annonChannels=[]) {
+    constructor (config) {
         this.config = config;
-        this.channels = channels;
-        this.annonChannels = annonChannels;
+        this.channels = config.channels;
+        this.annonChannels = config.annonChannels;
         this.accounts = accounts;
         this.ws = new WebSocketServer({
-            port: 9933,
+            port: this.config.port,
         });
 
         if (this.config.profanityRemoveWords) profanity.removeWords(this.config.profanityRemoveWords);
         if (this.config.profanityAddWords) profanity.addWords(this.config.profanityAddWords);
-        
+
         this.ws.on("connection", (socket, request) => {
             if (this.config.max && Object.keys(this.users).length >= this.config.max) {
-                socket.send(format(this.config.fullMessage ?? "Sorry, but the server is full right now, come back later"));
+                socket.send(this.format(this.config.fullMessage ?? "Sorry, but the server is full right now, come back later"));
                 socket.close(1001, "Server full");
                 return;
             }
@@ -119,12 +92,12 @@ class Server {
             }
             const user = new User(request, socket, this)
             this.users[user.id] = user
-            socket.send(format(this.config.motd));
+            socket.send(this.format(this.config.motd));
             console.info(`${user.name()}[${user.id}] joined the server!`);
-            sendInChannel(`${user.name()} joined.`, this.users[user.id].channel);
+            this.sendInChannel(`${user.name()} joined.`, this.users[user.id].channel);
             this.updateUsers();
             socket.on("close", function (code, reason) {
-                sendInChannel(`${user.name()} left.`, this.users[user.id].channel);
+                this.sendInChannel(`${user.name()} left.`, this.users[user.id].channel);
                 this.updateUsers();
                 delete this.users[user.id];
             });
@@ -136,13 +109,12 @@ class Server {
                     console.log(`${user.name()} used /${command}`);
                     if (!commandObj) return socket.send(`Error: Command "${command}" not found!`);
                     try {
-                        let server = this
                         commandObj.command({
                             user,
                             command,
                             args,
-                            sendInChannel,
-                            server,
+                            sendInChannel: this.sendInChannel,
+                            server: this,
                             commands,
                         });
                     } catch (error) {
@@ -159,75 +131,18 @@ class Server {
                     user.client = client;
                     return;
                 }
-                if (rawData.toString().startsWith(":jsonGet")) {
-                    let params = String(rawData).split(" ");
-                    params.shift();
-                    switch (params[0]) {
-                        case "channels":
-                            socket.send(":json.channels>" + JSON.stringify(this.channels));
-                            break;
-                        case "users":
-                            socket.send(
-                                ":json.users>" +
-                                    JSON.stringify(
-                                        Object.values(this.users).map((usr) => {
-                                            return {
-                                                username: usr.username,
-                                                nickname: usr.nickname,
-                                                t: usr.t,
-                                                channel: user.channel,
-                                                displayName: user.name(),
-                                            };
-                                        })
-                                    )
-                            );
-                            break;
-                        case "usersLocal":
-                            socket.send(
-                                JSON.stringify(
-                                    Object.values(this.users)
-                                        .filter((usr) => usr.channel == user.channel)
-                                        .map((usr) => {
-                                            return {
-                                                username: usr.username,
-                                                nickname: usr.nickname,
-                                                t: usr.t,
-                                                channel: user.channel,
-                                                displayName: user.name(),
-                                            };
-                                        })
-                                )
-                            );
-                            break;
-        
-                        default:
-                            socket.send(`unknown "${params[0]}"`);
-                            break;
-                    }
-                    return;
-                }
-                if (rawData.toString().startsWith(":jsonSubscribe")) {
-                    let params = String(rawData).split(" ");
-                    params.shift();
-                    switch (params[0]) {
-                        case "users":
-                            user.subscribedToUsers = true;
-                            break;
-        
-                        default:
-                            socket.send(`unknown "${params[0]}"`);
-                            break;
-                    }
-                    return;
-                }
+                if(handleJsonMessage(rawData, user)) return;
                 if (this.config.requireLogin && user.guest && !this.annonChannels.includes(user.channel)) return socket.send("This server requires you to log in, use /login <username> <password> to log in or /register <username> <password> to make an account.");
                 profanity.options.grawlixChar = "*";
                 if (!this.config.profanity) rawData = profanity.censor(String(rawData));
                 if (rawData.length < 1) return socket.send("Error: message too short!");
                 if (rawData.length >= 2000) return socket.send("Error: message too long!");
-                sendInChannel(`${user.admin ? '[ADMIN] ' : ''}<${user.name()}${user.guest ? " (guest)" : ""}> ${rawData}`, this.channel);
+                this.sendInChannel(`${user.admin ? '[ADMIN] ' : ''}<${user.name()}${user.guest ? " (guest)" : ""}> ${rawData}`, this.channel);
                 console.log(`(#${user.channel}) <${user.name()}> ${rawData}`);
             });
+        });
+        this.ws.on("listening", () => {
+            console.info("Server started!");
         });
     }
 }

@@ -9,5 +9,8 @@
     "profanityRemoveWords": ["butt", "arse", "balls", "dick"],
     "profanityAddWords": ["kys"],
     "fullMessage": "Sorry, but the server is full right now, come back later",
-    "annonFormat": "Anonymous#[num]"
+    "annonFormat": "Anonymous#[num]",
+    "port": 9933,
+    "channels": ["home", "off-topic", "randomness"],
+    "annonChannels": ["randomness"]
 }
