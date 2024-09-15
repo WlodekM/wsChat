@@ -1,16 +1,22 @@
-export default function handleMessage(rawData, user) {
+/**
+ * handles json data
+ * @param {Buffer} rawData the raw message data
+ * @param {import("./user.js").default} user the user
+ * @returns {Boolean}
+ */
+export default function handleMessage(server, rawData, user) {
     if (rawData.toString().startsWith(":jsonGet")) {
         let params = String(rawData).split(" ");
         params.shift();
         switch (params[0]) {
             case "channels":
-                socket.send(":json.channels>" + JSON.stringify(this.channels));
+                user.socket.send(":json.channels>" + JSON.stringify(server.channels));
                 break;
             case "users":
-                socket.send(
+                user.socket.send(
                     ":json.users>" +
                         JSON.stringify(
-                            Object.values(this.users).map((usr) => {
+                            Object.values(server.users).map((usr) => {
                                 return {
                                     username: usr.username,
                                     nickname: usr.nickname,
@@ -23,9 +29,9 @@ export default function handleMessage(rawData, user) {
                 );
                 break;
             case "usersLocal":
-                socket.send(
+                user.socket.send(
                     JSON.stringify(
-                        Object.values(this.users)
+                        Object.values(server.users)
                             .filter((usr) => usr.channel == user.channel)
                             .map((usr) => {
                                 return {
@@ -41,7 +47,7 @@ export default function handleMessage(rawData, user) {
                 break;
 
             default:
-                socket.send(`unknown "${params[0]}"`);
+                user.socket.send(`unknown "${params[0]}"`);
                 break;
         }
         return true;
@@ -55,7 +61,7 @@ export default function handleMessage(rawData, user) {
                 break;
 
             default:
-                socket.send(`unknown "${params[0]}"`);
+                user.socket.send(`unknown "${params[0]}"`);
                 break;
         }
         return true;

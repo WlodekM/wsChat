@@ -5,8 +5,9 @@ import cuid from "cuid";
 
 export default class User {
     /**
-     * 
+     * the user class
      * @param {import("http").IncomingMessage} request request
+     * @param {WebSocket} socket socket
      * @param {import("./server.js").Server} server the server
      */
     constructor (request, socket, server) {
