@@ -19,6 +19,7 @@
     "dependencies": {
         "@2toad/profanity": "^2.2.0",
         "cuid": "^3.0.0",
+        "ini": "^5.0.0",
         "ws": "^8.17.1"
     }
 }
