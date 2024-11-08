@@ -26,6 +26,7 @@ node index.js
 - ~~Custom commands (plugins)~~
 - ~~Auth (optional)~~
 - Command class?
+- INI config file and channel-specific config
 
 ## IN PROGRESS
 

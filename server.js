@@ -50,6 +50,18 @@ export default class Server {
     }
 
     /**
+     * @typedef ServerConfig
+     * @property {Number} port
+     * @property {String} name
+     * @property {String} motd
+     * @property {String} fullMessage
+     * @property {Number} max
+     * 
+     * @typedef Config
+     * @property {ServerConfig} server
+     */
+
+    /**
      * A wsChat server
      * @param {{
      *  name: String,
