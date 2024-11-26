@@ -6,14 +6,14 @@ import cuid from "cuid";
 export default class User {
     /**
      * the user class
-     * @param {import("http").IncomingMessage} request request
+     * @param {import("node:http").IncomingMessage} request request
      * @param {WebSocket} socket socket
-     * @param {import("./server.js").Server} server the server
+     * @param {import("./server.ts").Server} server the server
      */
     constructor (request, socket, server) {
         this.id = cuid();
-        let anonID = getRandomInt(0, 99999);
-        let annonNum = "0".repeat(5 - anonID.toString().length) + anonID.toString()
+        const anonID = getRandomInt(0, 99999);
+        const annonNum = "0".repeat(5 - anonID.toString().length) + anonID.toString()
         this.username = server.config.annonFormat ? server.config.annonFormat.replace('[num]', annonNum) : 'Anonymous' + annonNum;
         this.nickname = server.config.annonFormat ? server.config.annonFormat.replace('[num]', annonNum) : 'Anonymous' + annonNum;
         this.guest = true;

@@ -11,12 +11,18 @@ importers:
       '@2toad/profanity':
         specifier: ^2.2.0
         version: 2.5.0
+      '@types/node':
+        specifier: ^22.10.0
+        version: 22.10.0
       cuid:
         specifier: ^3.0.0
         version: 3.0.0
       ini:
         specifier: ^5.0.0
         version: 5.0.0
+      typescript:
+        specifier: ^5.0.0
+        version: 5.6.3
       ws:
         specifier: ^8.17.1
         version: 8.18.0
@@ -40,6 +46,9 @@ packages:
   '@types/node@20.12.14':
     resolution: {integrity: sha512-scnD59RpYD91xngrQQLGkE+6UrHUPzeKZWhhjBSa3HSkwjbQc38+q3RoIVEwxQGRw3M+j5hpNAM+lgV3cVormg==}
 
+  '@types/node@22.10.0':
+    resolution: {integrity: sha512-XC70cRZVElFHfIUB40FgZOBbgJYFKKMa5nb9lxcwYstFG/Mi+/Y0bGS+rs6Dmhmkpq4pnNiLiuZAbc02YCOnmA==}
+
   '@types/ws@8.5.13':
     resolution: {integrity: sha512-osM/gWBTPKgHV8XkTunnegTRIsvF6owmf5w+JtAfOw472dptdm0dlGv4xCt6GwQRcC2XVOvvRE/0bAoQcL2QkA==}
 
@@ -59,8 +68,16 @@ packages:
     engines: {node: '>=14'}
     hasBin: true
 
+  typescript@5.6.3:
+    resolution: {integrity: sha512-hjcS1mhfuyi4WW8IWtjP7brDrG2cuDZukyrYrSauoXGNgx0S7zceP07adYkJycEr56BOUTNPzbInooiN3fn1qw==}
+    engines: {node: '>=14.17'}
+    hasBin: true
+
   undici-types@5.26.5:
     resolution: {integrity: sha512-JlCMO+ehdEIKqlFxk6IfVoAUVmgz7cU7zD/h9XZ0qzeosSHmUJVOzSQvvYSYWXkFXC+IfLKSIffhv0sVZup6pA==}
+
+  undici-types@6.20.0:
+    resolution: {integrity: sha512-Ny6QZ2Nju20vw1SRHe3d9jVu6gJ+4e3+MMpqu7pqE5HT6WsTSlce++GQmK5UXS8mzV8DSYHrQH+Xrf2jVcuKNg==}
 
   ws@8.18.0:
     resolution: {integrity: sha512-8VbfWfHLbbwu3+N6OKsOMpBdT4kXPDDB9cJk2bJ6mh9ucxdlnNvH1e+roYkKmN9Nxw2yjz7VzeO9oOz2zJ04Pw==}
@@ -86,9 +103,13 @@ snapshots:
     dependencies:
       undici-types: 5.26.5
 
+  '@types/node@22.10.0':
+    dependencies:
+      undici-types: 6.20.0
+
   '@types/ws@8.5.13':
     dependencies:
-      '@types/node': 20.12.14
+      '@types/node': 22.10.0
 
   bun-types@1.1.34:
     dependencies:
@@ -101,6 +122,10 @@ snapshots:
 
   prettier@3.3.3: {}
 
+  typescript@5.6.3: {}
+
   undici-types@5.26.5: {}
+
+  undici-types@6.20.0: {}
 
   ws@8.18.0: {}
