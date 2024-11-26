@@ -1,7 +1,7 @@
-import fs from 'fs';
-import path from 'path';
-import * as accounts from './accounts.js'
-import { commands } from "./commands.js";
+import fs from 'node:fs';
+import path from 'node:path';
+import * as accounts from './accounts.ts'
+import { commands } from "./commands.ts";
 
 export function getRankData(name) {
     if (!/^[^\/\\]*$/g.exec(name)) return null;
@@ -12,7 +12,7 @@ export function getRankData(name) {
 export function canUserDoCommand(command, username, guest=false) {
     let permissionLevel = 0;
     if (!guest) {
-        let accountData = accounts.getAccountData(username);
+        const accountData = accounts.getAccountData(username);
         if (getRankData(accountData?.admin ? 'admin' : accountData?.rank)) permissionLevel = getRankData(accountData?.admin ? 'admin' : accountData?.rank).level;
     }
     // Banned users can be given a rank with negative permissions so that no commands can be ran

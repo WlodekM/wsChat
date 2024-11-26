@@ -1,8 +1,8 @@
 import { WebSocketServer } from "ws";
 import { getRandomInt } from "./lib.js";
 import { profanity } from "@2toad/profanity";
-import { commands } from "./commands.js";
-import * as accounts from "./accounts.js";
+import { commands } from "./commands.ts";
+import * as accounts from "./accounts.ts";
 import cuid from "cuid";
 import fs from "fs";
 

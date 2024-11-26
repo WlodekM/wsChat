@@ -1,6 +1,6 @@
-import { createHash } from "crypto";
+import { createHash } from "node:crypto";
 import cuid from "cuid";
-import fs from "fs";
+import fs from "node:fs";
 
 if (!fs.existsSync("db")) fs.mkdirSync("db");
 if (!fs.existsSync("db/users.json")) fs.writeFileSync("db/users.json", "{}");
@@ -19,26 +19,22 @@ function syncDB() {
  * @param {String} username Username to check
  * @returns {Boolean}
  */
-export function checkAccount(username) {
+export function checkAccount(username: string) {
     return db[username] != undefined;
 }
 
 /**
  * Does a loose check on if the account exists
- * @param {String} username Username to check
- * @returns {Boolean}
  */
-export function checkAccountLoose(username) {
-    return Object.keys(db).find(n => n.toLowerCase() == username.toLowerCase());
+export function checkAccountLoose(username: string): boolean {
+    return Object.keys(db).find(n => n.toLowerCase() == username.toLowerCase()) ? true : false;
 }
 
 /**
  * Create an account
- * @param {String} username The username
- * @param {String} password The password
  */
-export function createAccount(username, password, admin = false) {
-    let hashedPassword = createHash("sha256").update(password).digest("hex");
+export function createAccount(username: string, password: string, admin: boolean = false) {
+    const hashedPassword = createHash("sha256").update(password).digest("hex");
     db[username] = {
         admin,
         id: cuid(),
@@ -51,10 +47,8 @@ export function createAccount(username, password, admin = false) {
 
 /**
  * Log IP address (for IP bans)
- * @param {String} username Username
- * @param {String} ip IP address
  */
-export function logIP(username, ip) {
+export function logIP(username: string, ip: string) {
     if (!db[username].ips) db[username].ips = [];
     if (!db[username].ips.includes(ip)) db[username].ips.push(ip);
     syncDB();
@@ -62,22 +56,20 @@ export function logIP(username, ip) {
 
 /**
  * Check if password is correct
- * @param {String} username The username
- * @param {String} password The password
  * @returns {Boolean}
  */
-export function checkPassword(username, password) {
-    let hashedPassword = createHash("sha256").update(password).digest("hex");
+export function checkPassword(username: string, password: string) {
+    const hashedPassword = createHash("sha256").update(password).digest("hex");
     return db[username]?.password === hashedPassword;
 }
 
 /**
  * Get account data
  * @param {String} username The username
- * @returns {Object}
+ * @returns {User}
  */
-export function getAccountData(username) {
-    let returnData = JSON.parse(JSON.stringify(db[username]));
+export function getAccountData(username: string) {
+    const returnData = JSON.parse(JSON.stringify(db[username]));
     returnData.password = null;
     return returnData;
 }

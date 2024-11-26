@@ -1,7 +1,7 @@
 /**
  * handles json data
  * @param {Buffer} rawData the raw message data
- * @param {import("./user.js").default} user the user
+ * @param {import("./user.ts").default} user the user
  * @returns {Boolean}
  */
 export default function handleMessage(server, rawData, user) {

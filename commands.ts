@@ -1,6 +1,18 @@
-import fs from "fs";
+import fs from "node:fs";
+import type User from "./user.ts";
+import type Server from "./server.ts";
 
-export const commands = {
+// NOTE - temporary, will make class later
+export type Command = {
+    name: string,
+    usage?: string,
+    description: string,
+    aliases: string[],
+    command: ({ user, server, args, sendInChannel, commands }:
+        { user: User, server: Server, args: string[], sendInChannel: (msg: string, channel: string, server?: Server) => void, commands: {[key: string]: Command} }) => void
+}
+
+export const commands: {[key: string]: Command} = {
     join: {
         name: "join",
         usage: "/join <channel>",
@@ -46,8 +58,8 @@ export const commands = {
         usage: "/about",
         description: "Shows info about wsChat",
         aliases: [],
-        command({ user, args, sendInChannel }) {
-            let packagejson = JSON.parse(fs.readFileSync("package.json").toString())
+        command({ user }) {
+            const packagejson = JSON.parse(fs.readFileSync("package.json").toString())
             user.socket.send(`wsChat v${packagejson.version}\nGithub: https://github.com/WlodekM/wsChat`);
         },
     },
@@ -58,9 +70,9 @@ export const commands = {
         aliases: [],
         command({ user, server, args }) {
             if (args.length < 1) return user.socket.send("Please provide username");
-            if (!Object.values(server.users).find((usr) => usr.username == args[0])) return user.socket.send("User not found");
-            let userFound = Object.values(server.users).find((usr) => usr.username == args[0]);
-            userFound.id = Object.keys(server.users).find((usr) => server.users[usr].username == args[0]);
+            if (![...server.users.entries()].find(([_, usr]) => usr.username == args[0])) return user.socket.send("User not found");
+            const userFound = Object.values(server.users).find((usr) => usr.username == args[0]);
+            userFound.id = Object.keys(server.users).find((usr) => (server.users.get(usr) as User).username == args[0]);
             user.socket.send(`${userFound.username}\nClient: ${userFound.client ?? "<Unknown>"}\nID: ${userFound.id}`);
         },
     },
@@ -83,7 +95,7 @@ export const commands = {
         usage: "/?",
         description: "Shows all commands",
         aliases: ["?"],
-        command({ user, args, commands }) {
+        command({ user }) {
             user.socket.send(
                 `Commands available:\n${Object.values(commands)
                     .map((cmd) => `* /${cmd.name} (Aliases: ${cmd.aliases.join(", ") || "<None>"})`)
@@ -100,7 +112,7 @@ export const commands = {
             if (args.length < 2) return user.socket.send(`Usage: /login <username> <password>`);
             if (!server.accounts.checkAccount(args[0])) return user.socket.send(`Account "${args[0]}" not found!`);
             if (!server.accounts.checkPassword(args[0], args[1])) return user.socket.send(`Password incorrect.`);
-            let ipBanList = JSON.parse(String(fs.readFileSync("db/bannedIps.json")));
+            const ipBanList = JSON.parse(String(fs.readFileSync("db/bannedIps.json")));
             if (server.config.saveIP) server.accounts.logIP(args[0], user.ip);
             if (ipBanList['account:'+args[0]] != undefined) {
                 ipBanList[user.ip] = ipBanList['account:'+args[0]];
@@ -144,11 +156,11 @@ export const commands = {
         usage: "/pm <user> [message]",
         description: "Send a private message to a user",
         aliases: [],
-        command({ server, args, user, sendInChannel }) {
+        command({ server, args, user }) {
             if (args.length < 1) return user.socket.send("Please provide username");
-            if (!Object.values(server.users).find((usr) => usr.username == args[0])) return user.socket.send("User not found");
-            let userFound = Object.values(server.users).find((usr) => usr.username == args[0]);
-            userFound.id = Object.keys(server.users).find((usr) => server.users[usr].username == args[0]);
+            // yes i am that lazy
+            const userFound = ([...server.users.entries()].find(([_, usr]) => usr.username == args[0]) ?? [undefined, undefined])[1];
+            if (!userFound) return user.socket.send("User not found");
             args.shift();
             userFound.socket.send(`${user.username} -> You : ${args.join(" ")}`);
             user.socket.send(`You -> ${userFound.username} : ${args.join(" ")}`);
@@ -156,11 +168,11 @@ export const commands = {
     },
 };
 
-export function register(cmd, data) {
+export function register(cmd: string, data: Command) {
     commands[cmd] = data;
 }
 
-let commandFiles = fs
+const commandFiles = fs
     .readdirSync("commands")
     .filter((filename) => filename.endsWith(".js"))
     .map((file) => file.replace(/\.js$/gim, ""));
