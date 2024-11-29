@@ -1,5 +1,5 @@
-import Server from './server.js';
+import Server from './server.ts';
 import ini from "ini"
-import fs from "fs"
+import fs from "node:fs"
 
-const server = new Server(ini.parse(String(fs.readFileSync("config.ini"))))
+new Server(ini.parse(String(fs.readFileSync("config.ini"))))
