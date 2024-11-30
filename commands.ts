@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import type User from "./user.ts";
 import type Server from "./server.ts";
+import { ChannelConfig } from "./server.ts";
 
 // NOTE - temporary, will make class later
 export type Command = {
@@ -23,10 +24,13 @@ export const commands: {[key: string]: Command} = {
             if (!args[0].startsWith("#")) return user.socket.send("Error: Channel not found, run /channels to see a list of channels.");
             if (!server.channels.includes(args[0].replace("#", ""))) return user.socket.send("Error: Channel not found, run /channels to see a list of channels.");
             sendInChannel(`${user.name()} left #${user.channel}.`, user.channel);
-            user.channel = args[0].replace("#", "");
+            const newChannel = args[0].replace("#", "")
+            console.info(`${user.name()} went to #${newChannel}`);
+            sendInChannel(`${user.name()} joined #${newChannel}!`, newChannel);
+            user.channel = newChannel;
             server.updateUsers();
-            console.info(`${user.name()} went to #${user.channel}`);
-            sendInChannel(`${user.name()} joined #${user.channel}!`, user.channel);
+            const channelConfig: ChannelConfig = server.config['channels-'+newChannel] as ChannelConfig;
+            user.socket.send(channelConfig?.motd ?? `You joined #${newChannel}`)
         },
     },
     channels: {
@@ -174,7 +178,7 @@ export function register(cmd: string, data: Command) {
 
 const commandFiles = fs
     .readdirSync("commands")
-    .filter((filename) => filename.endsWith(".js"))
+    .filter((filename) => filename.endsWith(".js") || filename.endsWith(".ts"))
     .map((file) => file.replace(/\.js$/gim, ""));
 for (let i = 0; i < commandFiles.length; i++) {
     const cmdName = commandFiles[i];

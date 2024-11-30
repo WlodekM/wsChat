@@ -12,7 +12,7 @@ class _Events { // JSON events for clients
     
 }
 
-type ServerConfig = {
+export type ServerConfig = {
     port: number
     name: string
     motd: string
@@ -20,27 +20,28 @@ type ServerConfig = {
     max: number
 }
 
-type AccountsConfig = {
+export type AccountsConfig = {
     owner: string
     saveIP: boolean
     requireLogin: boolean
     annonFormat: string
 }
 
-type ProfanityConfig = {
+export type ProfanityConfig = {
     filter: boolean
     removeWords: string
     addWords: string
 }
 
-type ChannelsConfig = {
+export type ChannelsConfig = {
     channels: string
 }
 
-type ChannelConfig = {
+export type ChannelConfig = {
     slowmode?: number
     requireLogin?: boolean
     profanity?: boolean
+    motd?: string
 }
 
 type addPrefixToObject<T, P extends string> = {
@@ -105,8 +106,15 @@ export default class Server {
                 socket.on("close", function () {
                     server.sendInChannel(`${user.name()} left.`, user.channel);
                     server.updateUsers();
+                    console.info(`${user.name()}[${user.id}] left (close)`)
                     server.users.delete(user.id);
                 });
+                socket.on('error', function () {
+                    server.sendInChannel(`${user.name()} left.`, user.channel);
+                    server.updateUsers();
+                    console.info(`${user.name()}[${user.id}] left (error)`)
+                    server.users.delete(user.id);
+                })
                 socket.on("message", function (rawData) {
                     let data: string = rawData.toString()
                     if (data.toString().startsWith("/")) {
@@ -144,7 +152,11 @@ export default class Server {
                     }
                     if(handleJsonMessage(server, data, user)) return;
                     const thisChannelConfig: ChannelConfig | undefined = server.config['channel-'+user.channel] as ChannelConfig;
-                    if (server.config.accounts.requireLogin && user.guest && thisChannelConfig?.requireLogin != undefined && !thisChannelConfig.requireLogin)
+                    if (server.config.accounts.requireLogin &&
+                        user.guest &&
+                        !(thisChannelConfig?.requireLogin != undefined &&
+                        thisChannelConfig?.requireLogin) ||
+                        thisChannelConfig?.requireLogin && user.guest)
                         return socket.send("This server requires you to log in, use /login <username> <password> to log in or /register <username> <password> to make an account.");
                     profanity.options.grawlixChar = "*";
                     if (server.config.profanity.filter) data = profanity.censor(String(data));
