@@ -87,9 +87,9 @@ export const commands: {[key: string]: Command} = {
         aliases: [],
         command({ user, server, args }) {
             user.socket.send(
-                `Users${args[0] != "global" ? ` in ${user.channel}` : ""}:\n${Object.values(server.users)
-                    .filter((usr) => usr.channel == user.channel || args[0] == "global")
-                    .map((usr) => ` * ${usr.name()}`)
+                `Users${args[0] != "global" ? ` in ${user.channel}` : ""}:\n${[...server.users.entries()]
+                    .filter(([_, usr]) => usr.channel == user.channel || args[0] == "global")
+                    .map<string>(([_, usr]) => ` * ${usr.name()}`)
                     .join("\n")}`
             );
         },
