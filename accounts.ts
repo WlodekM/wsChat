@@ -1,6 +1,8 @@
 import { createHash } from "node:crypto";
-import cuid from "cuid";
+import cuid2 from "@paralleldrive/cuid2";
 import fs from "node:fs";
+
+const cuid = cuid2.init()
 
 if (!fs.existsSync("db")) fs.mkdirSync("db");
 if (!fs.existsSync("db/users.json")) fs.writeFileSync("db/users.json", "{}");

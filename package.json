@@ -20,7 +20,7 @@
         "@2toad/profanity": "^2.2.0",
         "@types/node": "^22.10.0",
         "@types/ws": "^8.5.13",
-        "cuid": "^3.0.0",
+        "@paralleldrive/cuid2": "^2.2.2",
         "ini": "^5.0.0",
         "ws": "^8.17.1"
     }

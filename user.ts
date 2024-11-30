@@ -1,11 +1,13 @@
 // because why not make *more files
 
 import { getRandomInt } from "./lib.js";
-import cuid from "cuid";
+import cuid2 from "@paralleldrive/cuid2";
 import type { WebSocket } from 'ws'
 import type { IncomingMessage } from "node:http";
 import type Server from "./server.ts";
 import Timespamp from "./timestamp.ts";
+
+const cuid = cuid2.init()
 
 export default class User {
     id: string = cuid();

@@ -17,9 +17,9 @@ importers:
       '@types/ws':
         specifier: ^8.5.13
         version: 8.5.13
-      cuid:
-        specifier: ^3.0.0
-        version: 3.0.0
+      '@paralleldrive/cuid2':
+        specifier: ^2.2.2
+        version: 2.2.2
       ini:
         specifier: ^5.0.0
         version: 5.0.0
@@ -43,6 +43,13 @@ packages:
     resolution: {integrity: sha512-d3kAz00+scjh3r1m8h3AHt49mBPWiyPhzOwX1sw8dwt15OrG/SCYw3ne/hFnxb4sEOuaMTBCFnHjVck5VVTipQ==}
     engines: {node: '>=12'}
 
+  '@noble/hashes@1.6.1':
+    resolution: {integrity: sha512-pq5D8h10hHBjyqX+cfBm0i8JUXJ0UhczFc4r74zbuT9XgewFo2E3J1cOaGtdZynILNmQ685YWGzGE1Zv6io50w==}
+    engines: {node: ^14.21.3 || >=16}
+
+  '@paralleldrive/cuid2@2.2.2':
+    resolution: {integrity: sha512-ZOBkgDwEdoYVlSeRbYYXs0S9MejQofiVYoTbKzy/6GQa39/q5tQU2IX46+shYnUkpEl3wc+J6wRlar7r2EK2xA==}
+
   '@types/bun@1.1.13':
     resolution: {integrity: sha512-KmQxSBgVWCl6RSuerlLGZlIWfdxkKqat0nxN61+qu4y1KDn0Ll3j7v1Pl8GnaL3a/U6GGWVTJh75ap62kR1E8Q==}
 
@@ -57,10 +64,6 @@ packages:
 
   bun-types@1.1.34:
     resolution: {integrity: sha512-br5QygTEL/TwB4uQOb96Ky22j4Gq2WxWH/8Oqv20fk5HagwKXo/akB+LiYgSfzexCt6kkcUaVm+bKiPl71xPvw==}
-
-  cuid@3.0.0:
-    resolution: {integrity: sha512-WZYYkHdIDnaxdeP8Misq3Lah5vFjJwGuItJuV+tvMafosMzw0nF297T7mrm8IOWiPJkV6gc7sa8pzx27+w25Zg==}
-    deprecated: Cuid and other k-sortable and non-cryptographic ids (Ulid, ObjectId, KSUID, all UUIDs) are all insecure. Use @paralleldrive/cuid2 instead.
 
   ini@5.0.0:
     resolution: {integrity: sha512-+N0ngpO3e7cRUWOJAS7qw0IZIVc6XPrW4MlFBdD066F2L4k1L6ker3hLqSq7iXxU5tgS4WGkIUElWn5vogAEnw==}
@@ -98,6 +101,12 @@ snapshots:
 
   '@2toad/profanity@2.5.0': {}
 
+  '@noble/hashes@1.6.1': {}
+
+  '@paralleldrive/cuid2@2.2.2':
+    dependencies:
+      '@noble/hashes': 1.6.1
+
   '@types/bun@1.1.13':
     dependencies:
       bun-types: 1.1.34
@@ -118,8 +127,6 @@ snapshots:
     dependencies:
       '@types/node': 20.12.14
       '@types/ws': 8.5.13
-
-  cuid@3.0.0: {}
 
   ini@5.0.0: {}
 
