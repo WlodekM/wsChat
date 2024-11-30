@@ -1,6 +1,6 @@
 // because why not make *more files
 
-import { getRandomInt } from "./lib.js";
+import { getRandomInt } from "./lib.ts";
 import cuid2 from "@paralleldrive/cuid2";
 import type { WebSocket } from 'ws'
 import type { IncomingMessage } from "node:http";

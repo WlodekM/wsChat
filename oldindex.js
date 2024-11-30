@@ -1,5 +1,5 @@
 import { WebSocketServer } from "ws";
-import { getRandomInt } from "./lib.js";
+import { getRandomInt } from "./lib.ts";
 import { profanity } from "@2toad/profanity";
 import { commands } from "./commands.ts";
 import * as accounts from "./accounts.ts";

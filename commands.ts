@@ -3,14 +3,21 @@ import type User from "./user.ts";
 import type Server from "./server.ts";
 import { ChannelConfig } from "./server.ts";
 
+export type CommandFnArgs = {
+    user: User,
+    server: Server,
+    args: string[],
+    sendInChannel: (msg: string, channel: string, server?: Server) => void,
+    commands: {[key: string]: Command}
+}
+
 // NOTE - temporary, will make class later
 export type Command = {
     name: string,
     usage?: string,
     description: string,
     aliases: string[],
-    command: ({ user, server, args, sendInChannel, commands }:
-        { user: User, server: Server, args: string[], sendInChannel: (msg: string, channel: string, server?: Server) => void, commands: {[key: string]: Command} }) => void
+    command: ({ user, server, args, sendInChannel, commands }: CommandFnArgs) => void
 }
 
 export const commands: {[key: string]: Command} = {
@@ -178,8 +185,9 @@ export function register(cmd: string, data: Command) {
 
 const commandFiles = fs
     .readdirSync("commands")
-    .filter((filename) => filename.endsWith(".js") || filename.endsWith(".ts"))
-    .map((file) => file.replace(/\.js$/gim, ""));
+    .filter((filename: string) => filename.endsWith(".js") || filename.endsWith(".ts"))
+    .map((file: string) => file.replace(/\.js$/gim, ""));
+
 for (let i = 0; i < commandFiles.length; i++) {
     const cmdName = commandFiles[i];
     const cmd = (await import(`./commands/${cmdName}.js`)).default;
