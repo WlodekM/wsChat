@@ -3,8 +3,10 @@ import { getRandomInt } from "./lib.js";
 import { profanity } from "@2toad/profanity";
 import { commands } from "./commands.js";
 import * as accounts from "./accounts.js";
-import cuid from "cuid";
+import cuid2 from "@paralleldrive/cuid2";
 import fs from "fs";
+
+const cuid = cuid2.init()
 
 const server = {
     config: JSON.parse(String(fs.readFileSync("config.json"))),
