@@ -185,11 +185,10 @@ export function register(cmd: string, data: Command) {
 
 const commandFiles = fs
     .readdirSync("commands")
-    .filter((filename: string) => filename.endsWith(".js") || filename.endsWith(".ts"))
-    .map((file: string) => file.replace(/\.js$/gim, ""));
+    .filter((filename: string) => filename.endsWith(".js") || filename.endsWith(".ts"));
 
 for (let i = 0; i < commandFiles.length; i++) {
-    const cmdName = commandFiles[i];
-    const cmd = (await import(`./commands/${cmdName}.js`)).default;
-    register(cmdName, cmd);
+    const cmdPath = commandFiles[i];
+    const cmd = (await import(`./commands/${cmdPath}`)).default;
+    register(cmdPath.replace(/\.[jt]s$/gim, ""), cmd);
 }
