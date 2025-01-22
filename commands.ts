@@ -82,9 +82,9 @@ export const commands: {[key: string]: Command} = {
         command({ user, server, args }) {
             if (args.length < 1) return user.socket.send("Please provide username");
             if (![...server.users.entries()].find(([_, usr]) => usr.username == args[0])) return user.socket.send("User not found");
-            const userFound = Object.values(server.users).find((usr) => usr.username == args[0]);
-            userFound.id = Object.keys(server.users).find((usr) => (server.users.get(usr) as User).username == args[0]);
-            user.socket.send(`${userFound.username}\nClient: ${userFound.client ?? "<Unknown>"}\nID: ${userFound.id}`);
+            const [id, userFound] = [...server.users.entries()].find(([_, usr]) => usr.username == args[0]) ?? [];
+            if (!userFound) return user.socket.send("User not found");
+            user.socket.send(`${userFound.username}\nClient: ${userFound.client ?? "<Unknown>"}\nID: ${id}`);
         },
     },
     users: {

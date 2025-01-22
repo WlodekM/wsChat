@@ -6,6 +6,7 @@ import fs from "node:fs";
 import User from "./user.ts";
 import handleJsonMessage from './jsondata.js'
 import { EventEmitter } from "node:events";
+import * as logger from './logger.ts';
 
 // TODO - actually make this
 class _Events { // JSON events for clients
@@ -100,19 +101,19 @@ export default class Server {
                     return;
                 }
                 socket.send(server.format(server.config.server.motd));
-                console.info(`${user.name()}[${user.id}] joined the server!`);
+                logger.log(`${user.name()}[${user.id}] joined the server!`);
                 server.sendInChannel(`${user.name()} joined.`, user.channel);
                 server.updateUsers();
                 socket.on("close", function () {
                     server.sendInChannel(`${user.name()} left.`, user.channel);
                     server.updateUsers();
-                    console.info(`${user.name()}[${user.id}] left (close)`)
+                    logger.log(`${user.name()}[${user.id}] left (close)`)
                     server.users.delete(user.id);
                 });
                 socket.on('error', function () {
                     server.sendInChannel(`${user.name()} left.`, user.channel);
                     server.updateUsers();
-                    console.info(`${user.name()}[${user.id}] left (error)`)
+                    logger.log(`${user.name()}[${user.id}] left (error)`)
                     server.users.delete(user.id);
                 })
                 socket.on("message", function (rawData) {
@@ -122,7 +123,7 @@ export default class Server {
                         const command: string = args.shift() as string;
                         // TODO: make command class
                         const commandObj: Command = Object.values(commands).find((cmd) => cmd.name == command || cmd.aliases.includes(command)) as Command;
-                        console.log(`${user.name()} used /${command}`);
+                        logger.log(`${user.name()} used /${command}`);
                         if (!commandObj) return socket.send(`Error: Command "${command}" not found!`);
                         try {
                             commandObj.command.call(server, {
@@ -130,14 +131,14 @@ export default class Server {
                                 command,
                                 args,
                                 sendInChannel: function (msg: string, channel: string) {
-                                    console.log(msg, channel)
+                                    logger.log(msg + ' ' + channel)
                                     server.sendInChannel(msg, channel, server);
                                 },
                                 server: server,
                                 commands,
                             });
                         } catch (error) {
-                            console.error(error);
+                            logger.error(error);
                             user.socket.send(`Unexpected error ocurred while running the command`);
                         }
                         return;
@@ -163,7 +164,7 @@ export default class Server {
                     if (data.length < 1) return socket.send("Error: message too short!");
                     if (data.length >= 2000) return socket.send("Error: message too long!");
                     server.sendInChannel(`${user.admin ? '[ADMIN] ' : ''}<${user.name()}${user.guest ? " (guest)" : ""}> ${data}`, user.channel);
-                    console.log(`(#${user.channel}) <${user.name()}> ${data}`);
+                    logger.log(`(#${user.channel}) <${user.name()}> ${data}`);
                 });
             } catch (error) {
                 socket.send(`ERROR ${error}`);
@@ -171,12 +172,12 @@ export default class Server {
             }
         });
         this.ws.on("listening", () => {
-            console.info("Server started!");
+            logger.info("Server started!");
         });
     }
 
     sendInChannel(msg: string, channel: string, server=this) {
-        // console.log('this is a', this)
+        // logger.log('this is a', this)
         for (const [userID] of server.users.entries()) {
             const user = server.users.get(userID) as User;
             if (user.channel == channel) user.socket.send(msg);
