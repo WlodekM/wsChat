@@ -176,3 +176,7 @@ dist
 
 db
 db/users.json
+config.ini
+server.log
+config.json
+start.sh
